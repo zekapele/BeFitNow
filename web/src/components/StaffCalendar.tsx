@@ -35,7 +35,7 @@ export function StaffCalendar({ trainings, selectedId, onSelect }: Props) {
               return (
                 <button
                   key={t.id}
-                  className={`calendar-slot ${active ? 'active' : ''} ${free === 0 ? 'full' : ''}`}
+                  className={`calendar-slot ${active ? 'active' : ''} ${free === 0 ? 'full' : ''} ${t.lowEnrollmentCancelled ? 'cancelled' : ''}`}
                   onClick={() => onSelect(t.id)}
                 >
                   <div className="slot-time">{t.dateTime.split(' ')[1]}</div>

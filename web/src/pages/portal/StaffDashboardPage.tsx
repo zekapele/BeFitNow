@@ -1,46 +1,76 @@
-import { useMemo, useState } from 'react';
-import { Calendar, LogOut, Phone, User, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  BarChart3, Calendar, Headphones, LogOut, Settings, Users,
+} from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { StaffCalendar } from '../../components/StaffCalendar';
 import { service } from '../../services/beFitNowService';
-import type { Staff } from '../../types';
+import {
+  AnalyticsSection,
+  BookingsSection,
+  ClientsSection,
+  ScheduleSection,
+  SettingsSection,
+  SupportSection,
+  type StaffSession,
+} from './PortalSections';
 
-interface StaffSession {
-  role: 'admin' | 'trainer';
-  staff: Staff;
-}
+type PortalTab = 'schedule' | 'bookings' | 'clients' | 'analytics' | 'support' | 'settings';
 
 export function StaffDashboardPage() {
   const navigate = useNavigate();
   const raw = sessionStorage.getItem('befitnow_staff');
   const session: StaffSession | null = raw ? JSON.parse(raw) : null;
+  const [tab, setTab] = useState<PortalTab>('schedule');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [refresh, setRefresh] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+  const [gymFilter, setGymFilter] = useState<number | undefined>(undefined);
 
-  const trainings = useMemo(() => {
-    if (!session) return [];
-    if (session.role === 'admin') return service.getAllTrainings();
-    return service.getTrainingsForTrainer(session.staff.name);
-  }, [session, refresh]);
+  const gymId = useMemo(() => {
+    if (!session) return undefined;
+    if (session.role === 'trainer') return session.staff.gymId;
+    return gymFilter;
+  }, [session, gymFilter]);
+
+  useEffect(() => {
+    if (session) {
+      service.runPortalMaintenance(gymId);
+    }
+  }, [session, gymId, refresh]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   if (!session) return <Navigate to="/portal" replace />;
-
-  const selected = selectedId ? service.getTraining(selectedId) : null;
-  const participants = selectedId ? service.getParticipants(selectedId) : [];
-  const gym = selected ? service.getGym(selected.gymId) : null;
 
   const logout = () => {
     sessionStorage.removeItem('befitnow_staff');
     navigate('/portal');
   };
 
-  const cancelBooking = (bookingId: number) => {
-    service.adminCancelBooking(bookingId);
-    setRefresh(r => r + 1);
-  };
+  const onRefresh = () => setRefresh(r => r + 1);
+  const showToast = (msg: string) => setToast(msg);
+
+  const sectionProps = { session, gymId, refresh, onRefresh, toast: showToast };
+
+  const tabs: { id: PortalTab; label: string; icon: typeof Calendar; adminOnly?: boolean }[] = [
+    { id: 'schedule', label: 'Розклад', icon: Calendar },
+    { id: 'bookings', label: 'Бронювання', icon: Users },
+    { id: 'clients', label: 'Клієнти', icon: Users, adminOnly: true },
+    { id: 'analytics', label: 'Аналітика', icon: BarChart3 },
+    { id: 'support', label: 'Підтримка', icon: Headphones },
+    { id: 'settings', label: 'Налаштування', icon: Settings, adminOnly: true },
+  ];
+
+  const visibleTabs = tabs.filter(t => !t.adminOnly || session.role === 'admin');
 
   return (
-    <div className="portal-layout">
+    <div className="portal-layout portal-layout-full">
+      {toast && <div className="portal-toast">{toast}</div>}
+
       <header className="portal-header">
         <div className="portal-header-left">
           <Calendar size={22} color="var(--accent)" />
@@ -49,78 +79,36 @@ export function StaffDashboardPage() {
             <p>{session.role === 'admin' ? 'Адміністратор' : 'Тренер'} · {session.staff.name}</p>
           </div>
         </div>
-        <button className="btn btn-ghost" onClick={logout}>
-          <LogOut size={18} /> Вийти
-        </button>
+        <div className="portal-header-actions">
+          {session.role === 'admin' && (
+            <select className="input portal-gym-select" value={gymFilter ?? ''} onChange={e => setGymFilter(e.target.value ? +e.target.value : undefined)}>
+              <option value="">Усі клуби</option>
+              {service.getGyms().map(g => <option key={g.id} value={g.id}>{g.name} · {g.city}</option>)}
+            </select>
+          )}
+          <button className="btn btn-ghost" onClick={logout}>
+            <LogOut size={18} /> Вийти
+          </button>
+        </div>
       </header>
 
-      <div className="portal-content" key={refresh}>
-        <main className="portal-calendar-panel">
-          <h2 className="portal-section-title">Календар занять</h2>
-          <StaffCalendar trainings={trainings} selectedId={selectedId} onSelect={setSelectedId} />
-        </main>
+      <nav className="portal-tabs">
+        {visibleTabs.map(t => (
+          <button key={t.id} className={`portal-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            <t.icon size={16} /> {t.label}
+          </button>
+        ))}
+      </nav>
 
-        <aside className={`portal-detail-panel ${selected ? 'open' : ''}`}>
-          {!selected ? (
-            <div className="portal-detail-empty">
-              <Users size={40} opacity={0.3} />
-              <p>Оберіть заняття в календарі,<br />щоб переглянути записи клієнтів</p>
-            </div>
-          ) : (
-            <>
-              <div className="portal-detail-header">
-                <h2>{selected.title}</h2>
-                <button className="btn btn-ghost" onClick={() => setSelectedId(null)}><X size={20} /></button>
-              </div>
-
-              <div className="portal-detail-info">
-                <p><strong>Дата:</strong> {selected.dateTime}</p>
-                <p><strong>Тренер:</strong> {selected.trainer}</p>
-                <p><strong>Тривалість:</strong> {selected.durationMinutes} хв</p>
-                {gym && <p><strong>Клуб:</strong> {gym.name}, {gym.address}</p>}
-                <p>
-                  <strong>Заповненість:</strong>{' '}
-                  <span className={service.freeSpots(selected) === 0 ? 'text-full' : 'text-free'}>
-                    {selected.currentParticipants}/{selected.maxParticipants}
-                  </span>
-                </p>
-              </div>
-
-              <h3 className="portal-participants-title">
-                <Users size={18} /> Записані клієнти ({participants.length})
-              </h3>
-
-              {participants.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Поки немає записів</p>
-              ) : (
-                <ul className="portal-participants-list">
-                  {participants.map(p => {
-                    const booking = service.getAllBookings().find(
-                      b => b.userId === p.id && b.trainingId === selectedId && b.status === 'Confirmed'
-                    );
-                    return (
-                      <li key={p.id} className="portal-participant-card">
-                        <div className="participant-avatar"><User size={18} /></div>
-                        <div className="participant-info">
-                          <strong>{p.name}</strong>
-                          <span>{p.email}</span>
-                          {p.phone && <span><Phone size={12} /> {p.phone}</span>}
-                          {booking && <span className="booking-code">BFN-{booking.id}</span>}
-                        </div>
-                        {session.role === 'admin' && booking && (
-                          <button className="btn btn-danger" style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }}
-                            onClick={() => cancelBooking(booking.id)}>
-                            Скасувати
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </>
-          )}
-        </aside>
+      <div className="portal-body">
+        {tab === 'schedule' && (
+          <ScheduleSection {...sectionProps} selectedId={selectedId} onSelect={setSelectedId} />
+        )}
+        {tab === 'bookings' && <BookingsSection {...sectionProps} />}
+        {tab === 'clients' && session.role === 'admin' && <ClientsSection gymId={gymId} refresh={refresh} />}
+        {tab === 'analytics' && <AnalyticsSection gymId={gymId} refresh={refresh} />}
+        {tab === 'support' && <SupportSection {...sectionProps} />}
+        {tab === 'settings' && session.role === 'admin' && <SettingsSection {...sectionProps} />}
       </div>
     </div>
   );

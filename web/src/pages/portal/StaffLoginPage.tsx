@@ -50,7 +50,7 @@ export function StaffLoginPage() {
         </div>
 
         <p className="portal-client-link">
-          Ви клієнт? <a href="/">Перейти до застосунку</a>
+          Ви клієнт? <a href="/">Відкрити Telegram-бот</a>
         </p>
       </div>
     </div>

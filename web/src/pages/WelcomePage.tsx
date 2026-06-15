@@ -23,7 +23,7 @@ export function WelcomePage() {
         <Link to="/register" className="btn btn-secondary btn-block" style={{ marginTop: '0.75rem' }}>Створити акаунт</Link>
 
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '1.25rem' }}>
-          Демо: maria@mail.ua / 1234
+          Демо: +380501112233 · код 1234
         </p>
       </div>
     </div>

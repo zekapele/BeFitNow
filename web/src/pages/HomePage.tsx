@@ -49,7 +49,7 @@ export function HomePage() {
             <h1 className="page-title">Привіт, {user?.name.split(' ')[0]}! 👋</h1>
             <p className="page-subtitle">Знайдіть тренування та запишіться</p>
           </div>
-          <button className="btn btn-primary" style={{ padding: '0.5rem 0.75rem', fontSize: '0.78rem' }} onClick={() => navigate('/app/chat')}>
+          <button className="btn btn-primary" style={{ padding: '0.5rem 0.75rem', fontSize: '0.78rem' }} onClick={() => navigate('/app/ai')}>
             <MessageCircle size={16} /> AI
           </button>
         </div>

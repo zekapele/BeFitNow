@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const tabs = [
   { path: '/app', icon: Home, label: 'Головна' },
   { path: '/app/bookings', icon: Calendar, label: 'Записи' },
-  { path: '/app/chat', icon: MessageCircle, label: 'Чатбот' },
+  { path: '/app/chat', icon: MessageCircle, label: 'Telegram' },
   { path: '/app/profile', icon: User, label: 'Профіль' },
 ];
 

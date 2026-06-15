@@ -33,10 +33,23 @@ export interface Staff {
 export interface Gym {
   id: number;
   name: string;
+  city: string;
   address: string;
   description: string;
   connected: boolean;
+  latitude: number;
+  longitude: number;
+  lateCancelHours?: number;
+  paymentOnline?: boolean;
+  paymentOnSite?: boolean;
+  rulesText?: string;
+  crmConnected?: boolean;
+  crmProvider?: string;
+  googleRating?: number;
 }
+
+export const CITIES = ['Київ', 'Львів', 'Дніпро', 'Харків', 'Одеса'] as const;
+export type City = (typeof CITIES)[number];
 
 export interface Training {
   id: number;
@@ -52,6 +65,10 @@ export interface Training {
   minParticipants: number;
   bookingDeadlineHours: number;
   price: number;
+  active?: boolean;
+  lowEnrollmentCancelled?: boolean;
+  difficulty?: string;
+  whatToBring?: string;
 }
 
 export interface Booking {
@@ -60,6 +77,8 @@ export interface Booking {
   trainingId: number;
   status: BookingStatus;
   createdAt: string;
+  /** Підтвердження візиту за 4 год до початку */
+  attendanceConfirmed?: boolean;
 }
 
 export interface Membership {
@@ -95,6 +114,9 @@ export interface Review {
 
 export interface TrainerProfile {
   name: string;
+  firstName?: string;
+  lastName?: string;
+  shortBio?: string;
   qualifications: string;
   certificates: string[];
   averageRating: number;
@@ -128,6 +150,7 @@ export interface TrainingFilter {
   trainer?: string;
   type?: TrainingType;
   gymId?: number;
+  city?: string;
   keyword?: string;
   date?: string;
   timeOfDay?: TimeOfDay;
@@ -143,6 +166,92 @@ export interface SupportTicket {
   escalated: boolean;
   status: string;
   createdAt: string;
+  assignedAdmin?: string;
+  replies?: { from: 'user' | 'admin'; text: string; at: string }[];
+}
+
+export interface WaitlistEntry {
+  id: number;
+  userId: number;
+  trainingId: number;
+  createdAt: string;
+}
+
+export type PaymentMethod = 'membership' | 'one_time' | 'online' | 'cash';
+
+export interface PaymentRecord {
+  id: number;
+  bookingId: number;
+  userId: number;
+  amount: number;
+  status: 'pending' | 'completed' | 'failed';
+  method?: PaymentMethod;
+  clubName: string;
+  createdAt: string;
+}
+
+export interface BlacklistEntry {
+  id: number;
+  phone: string;
+  name?: string;
+  reason: string;
+  createdAt: string;
+}
+
+export interface SlotComment {
+  id: number;
+  trainingId: number;
+  staffEmail: string;
+  staffName: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface ClientRecord {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  membership: {
+    typeName: string;
+    total: number;
+    booked: number;
+    returned: number;
+    remaining: number;
+    validUntil: string;
+  } | null;
+  confirmedBookings: number;
+  blacklisted: boolean;
+}
+
+export interface PortalKPIs {
+  occupancyPct: number;
+  confirmedBookings: number;
+  cancelledBookings: number;
+  revenueTotal: number;
+  activeMembers: number;
+  lowEnrollmentCancelled: number;
+  avgGroupSize: number;
+}
+
+export interface BookingTrends {
+  byHour: { label: string; count: number }[];
+  byWeekday: { label: string; count: number }[];
+  byMonth: { label: string; count: number }[];
+}
+
+export interface BookingStatusBreakdown {
+  confirmed: number;
+  cancelled: number;
+  rescheduled: number;
+}
+
+export interface PaymentStats {
+  membership: number;
+  oneTime: number;
+  online: number;
+  cash: number;
+  total: number;
 }
 
 export const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {

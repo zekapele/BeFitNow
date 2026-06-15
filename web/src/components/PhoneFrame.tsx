@@ -26,7 +26,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
         </div>
         <div className="device-home-indicator" aria-hidden />
       </div>
-      <p className="device-caption">BeFitNow · Клієнтський застосунок</p>
+      <p className="device-caption">BeFitNow · Telegram Bot</p>
     </div>
   );
 }
