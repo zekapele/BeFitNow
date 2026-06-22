@@ -127,23 +127,23 @@ function discoverMenu(ctx: BotContext, userEmail?: string, loggedIn = false): Bo
   const city = cityLabel(ctx);
   const unread = userEmail ? service.getUnreadNotificationCount(userEmail) : 0;
   const buttons: TgButton[][] = [
-    [{ id: 'menu_find', text: '🗓 Find a workout' }],
-    [{ id: 'menu_clubs', text: '🏢 Find a gym' }, { id: 'menu_trainers', text: '👤 Find a trainer' }],
-    [{ id: 'menu_schedule', text: '📅 Browse schedule' }, { id: 'menu_pool', text: '🏊 Басейн' }],
+    [{ id: 'menu_find', text: '🗓 Знайти тренування' }],
+    [{ id: 'menu_clubs', text: '🏢 Знайти клуб' }, { id: 'menu_trainers', text: '👤 Знайти тренера' }],
+    [{ id: 'menu_schedule', text: '📅 Переглянути розклад' }, { id: 'menu_pool', text: '🏊 Басейн' }],
     [
       { id: 'menu_bookings', text: '📋 Мої записи' },
       { id: 'menu_notifications', text: `🔔 Нагадування${unread > 0 ? ` (${unread})` : ''}` },
     ],
-    [{ id: 'menu_location', text: '📍 Змінити локацію' }, { id: 'menu_support', text: '💬 Support' }],
+    [{ id: 'menu_location', text: '📍 Змінити локацію' }, { id: 'menu_support', text: '💬 Підтримка' }],
   ];
   if (loggedIn) buttons.push([{ id: 'auth_logout', text: '🚪 Вийти' }]);
   return {
     text: [
-      '🔍 <b>Discover</b>',
+      '🔍 <b>Пошук</b>',
       `📍 ${city}`,
       '',
       'Переглядайте клуби та тренування без реєстрації.',
-      'При записі: Enter details → Choose slot → Confirm.',
+      'При записі: введіть дані → оберіть слот → підтвердьте запис.',
     ].join('\n'),
     buttons,
   };
@@ -270,7 +270,7 @@ function clubsMenu(ctx: BotContext): BotReply {
     return { text: `Немає клубів у ${city}.`, buttons: [[{ id: 'menu_city', text: '🏙 Місто' }], [{ id: 'back_main', text: '◀️' }]] };
   }
   return {
-    text: `🏢 <b>Find a gym</b> · ${city}`,
+    text: `🏢 <b>Знайти клуб</b> · ${city}`,
     buttons: [
       ...chunkButtons(gyms.map(g => {
         const rating = service.getGymGoogleRating(g.id);
@@ -376,9 +376,9 @@ export function initialDiscoverContext(): BotContext {
 function bookEnterDetailsPrompt(backId = 'menu_discover'): BotReply {
   return {
     text: [
-      '📝 <b>Book an activity · Enter details</b>',
+      '📝 <b>Запис на тренування · Введення даних</b>',
       '',
-      '<b>Registration</b> — ім\'я та телефон.',
+      '<b>Реєстрація</b> — ім\'я та телефон.',
       'Далі: вибір слоту → підтвердження.',
       '',
       'Введіть <b>ім\'я</b> у чат.',
@@ -425,7 +425,7 @@ export function handleBookingInput(
     return {
       reply: {
         text: [
-          '📝 <b>Book · Enter details</b>',
+          '📝 <b>Запис · Введення даних</b>',
           '',
           `👤 ${name}`,
           '',
@@ -470,7 +470,7 @@ export function handleBookingInput(
     if (pendingAction) {
       return {
         reply: {
-          text: `✅ <b>Реєстрація готова</b>, ${user.name.split(' ')[0]}!\n\n📌 <b>Choose slot</b> — оберіть слот:`,
+          text: `✅ <b>Реєстрація готова</b>, ${user.name.split(' ')[0]}!\n\n📌 <b>Вибір слота</b> — оберіть слот:`,
         },
         ctx: cleared,
         result: { kind: 'user', user, resumeActionId: pendingAction },
@@ -630,7 +630,7 @@ function confirmBookingMenu(
   const gym = service.getGym(t.gymId);
   const conflict = service.hasTimeConflict(userId, trainingId);
   const lines = [
-    '📝 <b>Book · Confirm booking</b>',
+    '📝 <b>Запис · Підтвердження</b>',
     '',
     `👤 ${name}`,
     `📱 ${phone}`,
@@ -661,7 +661,7 @@ function paymentReviewMenu(trainingId: number, userId: number, bookingId: number
   const gym = service.getGym(t.gymId);
   const payment = service.createPayment(userId, trainingId);
   const lines = [
-    '💳 <b>Make payment</b>',
+    '💳 <b>Оплата</b>',
     '',
     `Запис BFN-${bookingId} створено — далі оплата в клубі`,
     '',
@@ -716,7 +716,7 @@ function trainersMenu(ctx: BotContext): BotReply {
     return { text: `Немає тренерів у ${city}.`, buttons: [[{ id: 'menu_city', text: '🏙 Змінити місто' }], [{ id: 'back_main', text: '◀️ Меню' }]] };
   }
   return {
-    text: `👤 <b>Find a trainer</b> · ${city}\nОберіть тренера:`,
+    text: `👤 <b>Знайти тренера</b> · ${city}\nОберіть тренера:`,
     buttons: [
       ...chunkButtons(trainers.map(tr => ({
         id: `trainer_${encodeURIComponent(tr.name)}`,
@@ -783,7 +783,7 @@ function scheduleBrowseMenu(ctx: BotContext): BotReply {
     week.push({ id: `sched_date_${iso}`, text: `${formatDateLabel(iso)} (${s.available}/${s.total})` });
   }
   return {
-    text: `📅 <b>Browse schedule</b> · ${city}\nВільні / всього слотів:`,
+    text: `📅 <b>Перегляд розкладу</b> · ${city}\nВільні / всього слотів:`,
     buttons: [
       ...chunkButtons(week, 2),
       [{ id: 'menu_city', text: '🏙 Змінити місто' }],
@@ -969,13 +969,13 @@ function helpMenu(): BotReply {
     text: [
       '❓ <b>Story Map · Client</b>',
       '',
-      '<b>Discover</b> — без реєстрації',
-      'Select Location → Find gym / workout / trainer → Browse schedule',
+      '<b>Пошук</b> — без реєстрації',
+      'Оберіть локацію → знайдіть клуб / тренування / тренера → перегляньте розклад',
       '',
-      '<b>Book an activity</b>',
-      'Choose slot → Enter details (ім\'я + телефон) → Confirm booking',
+      '<b>Запис на тренування</b>',
+      'Оберіть слот → введіть дані (ім\'я + телефон) → підтвердьте запис',
       '',
-      '<b>Make payment</b> → сторінка клубу',
+      '<b>Оплата</b> → сторінка клубу',
       '<b>Manage booking</b> → Мої записи, скасування',
       '<b>Get notification</b> → пасивні нагадування',
       '<b>Get support</b> → FAQ, чат з адміном',
@@ -1135,7 +1135,7 @@ export function handleBotAction(
       step: 'types',
       slotOffset: 0,
     };
-    replies.push({ text: '🗓 <b>Choose slot</b>\nСпочатку оберіть тип тренування:' });
+    replies.push({ text: '🗓 <b>Вибір слота</b>\nСпочатку оберіть тип тренування:' });
     replies.push(typeMenu(newCtx));
     return { replies, ctx: newCtx };
   }
@@ -1231,7 +1231,7 @@ export function handleBotAction(
       filterGymId: undefined,
       slotOffset: 0,
     };
-    replies.push({ text: '🗓 <b>Choose slot</b> · Find a workout\nТип → клуб → дата → слот' });
+    replies.push({ text: '🗓 <b>Вибір слота</b> · Знайти тренування\nТип → клуб → дата → слот' });
     replies.push(typeMenu(newCtx));
     return { replies, ctx: newCtx };
   }
@@ -1308,9 +1308,9 @@ export function handleBotAction(
     };
     replies.push({
       text: [
-        '📝 <b>Book · Enter details</b>',
+        '📝 <b>Запис · Введення даних</b>',
         '',
-        'Слот обрано. Перед <b>Confirm booking</b> вкажіть:',
+        'Слот обрано. Перед <b>підтвердженням запису</b> вкажіть:',
         'Введіть <b>ім\'я</b> у чат.',
       ].join('\n'),
       buttons: [[{ id: `slot_${id}`, text: '◀️ Назад до слоту' }]],
@@ -1650,5 +1650,5 @@ export const REPLY_KEYBOARD: TgButton[] = [
   { id: 'menu_discover', text: '🔍 Пошук' },
   { id: 'menu_bookings', text: '📋 Записи' },
   { id: 'menu_notifications', text: '🔔 Нагадування' },
-  { id: 'menu_support', text: '💬 Support' },
+  { id: 'menu_support', text: '💬 Підтримка' },
 ];
